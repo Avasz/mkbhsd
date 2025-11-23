@@ -412,8 +412,11 @@ window.addEventListener('keyup', function (e) {
 });
 
 // Touch support
-canvas.addEventListener('touchstart', function (e) {
-    e.preventDefault();
+// Touch support
+window.addEventListener('touchstart', function (e) {
+    if (e.target.tagName !== 'BUTTON') { // Allow button clicks to pass through
+        e.preventDefault();
+    }
     if (gameRunning) {
         touchJump = true;
     }

@@ -110,21 +110,7 @@ button:hover {
     #game-container {
         width: 100%;
         max-width: 100%;
-        /* Maintain aspect ratio or fit height */
-        height: auto;
-        aspect-ratio: 2 / 1;
-        /* Keep the 800x400 ratio */
+        height: 100vh;
         border: none;
-        /* Ensure it doesn't exceed viewport height */
-        max-height: 100vh;
-    }
-
-    /* If the screen is very short (landscape mobile), ensure it fits */
-    @media (max-height: 400px) {
-        #game-container {
-            height: 100vh;
-            width: auto;
-            aspect-ratio: 2 / 1;
-        }
     }
 }
