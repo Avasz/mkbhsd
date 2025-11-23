@@ -306,8 +306,143 @@ class Bird {
     }
 }
 
+// Underground Item Class
+class UndergroundItem {
+    constructor() {
+        const types = ['worm', 'rock', 'bug', 'rat', 'snake', 'hole', 'water'];
+        this.type = types[Math.floor(Math.random() * types.length)];
+        this.x = canvas.width + Math.random() * 100;
+
+        const groundTop = canvas.height - GROUND_HEIGHT;
+        this.y = groundTop + 20 + Math.random() * (GROUND_HEIGHT - 40);
+        this.size = 15 + Math.random() * 20; // Slightly larger base size
+        this.frame = 0;
+        this.markedForDeletion = false;
+
+        // Parallax factor: 0.5 to 0.8 (slower than game speed)
+        this.parallaxFactor = 0.5 + Math.random() * 0.3;
+
+        // Specific properties based on type
+        if (this.type === 'rock') {
+            this.color = '#555';
+        } else if (this.type === 'worm') {
+            this.color = '#ff9999';
+        } else if (this.type === 'bug') {
+            this.color = '#222';
+        } else if (this.type === 'rat') {
+            this.color = '#808080';
+        } else if (this.type === 'snake') {
+            this.color = '#228B22';
+        } else if (this.type === 'hole') {
+            this.color = '#2a1505'; // Darker than ground
+        } else if (this.type === 'water') {
+            this.color = 'rgba(0, 100, 255, 0.6)';
+        }
+    }
+
+    update() {
+        this.x -= gameSpeed * this.parallaxFactor; // Move slower than ground
+        this.frame++;
+        if (this.x < -100) {
+            this.markedForDeletion = true;
+        }
+    }
+
+    draw() {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+
+        if (this.type === 'worm') {
+            ctx.strokeStyle = this.color;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            // Slower animation: frame * 0.05
+            for (let i = 0; i < this.size; i += 2) {
+                ctx.lineTo(i, Math.sin((this.frame * 0.05) + (i * 0.5)) * 3);
+            }
+            ctx.stroke();
+        } else if (this.type === 'rock') {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(0, 0, this.size / 2, 0, Math.PI * 2);
+            ctx.fill();
+            // Highlight
+            ctx.fillStyle = '#777';
+            ctx.beginPath();
+            ctx.arc(-2, -2, this.size / 4, 0, Math.PI * 2);
+            ctx.fill();
+        } else if (this.type === 'bug') {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, this.size / 3, this.size / 4, 0, 0, Math.PI * 2);
+            ctx.fill();
+            // Legs
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            // Left legs
+            ctx.moveTo(-5, 0); ctx.lineTo(-8, -3);
+            ctx.moveTo(-5, 0); ctx.lineTo(-8, 3);
+            // Right legs
+            ctx.moveTo(5, 0); ctx.lineTo(8, -3);
+            ctx.moveTo(5, 0); ctx.lineTo(8, 3);
+            ctx.stroke();
+        } else if (this.type === 'rat') {
+            // Body
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, this.size / 2, this.size / 3, 0, 0, Math.PI * 2);
+            ctx.fill();
+            // Tail - Slower animation: frame * 0.1
+            ctx.strokeStyle = 'pink';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(this.size / 2, 0);
+            ctx.quadraticCurveTo(this.size, Math.sin(this.frame * 0.1) * 5, this.size + 10, 0);
+            ctx.stroke();
+            // Ear
+            ctx.fillStyle = 'pink';
+            ctx.beginPath();
+            ctx.arc(-this.size / 3, -this.size / 4, 3, 0, Math.PI * 2);
+            ctx.fill();
+        } else if (this.type === 'snake') {
+            ctx.strokeStyle = this.color;
+            ctx.lineWidth = 4;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            // Slower animation: frame * 0.05
+            for (let i = 0; i < this.size * 1.5; i += 3) {
+                ctx.lineTo(i - this.size / 2, Math.sin((this.frame * 0.05) + (i * 0.3)) * 4);
+            }
+            ctx.stroke();
+            // Tongue - Slower flick
+            if (Math.floor(this.frame / 20) % 2 === 0) {
+                ctx.strokeStyle = 'red';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(-this.size / 2, 0);
+                ctx.lineTo(-this.size / 2 - 5, 0);
+                ctx.stroke();
+            }
+        } else if (this.type === 'hole') {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, this.size, this.size / 2, 0, 0, Math.PI * 2);
+            ctx.fill();
+        } else if (this.type === 'water') {
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, this.size * 1.5, this.size / 2, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        ctx.restore();
+    }
+}
+
 let clouds = [];
 let birds = [];
+let undergroundItems = [];
 let jumpCount = 0;
 
 function handleBackgroundElements(isNight) {
@@ -392,6 +527,17 @@ function drawBackground() {
     // Ground
     ctx.fillStyle = isNight ? '#3b1e08' : '#8B4513';
     ctx.fillRect(0, canvas.height - GROUND_HEIGHT, canvas.width, GROUND_HEIGHT);
+
+    // Underground Items
+    if (Math.random() < 0.005) {
+        undergroundItems.push(new UndergroundItem());
+    }
+    undergroundItems.forEach(item => {
+        item.update();
+        item.draw();
+    });
+    undergroundItems = undergroundItems.filter(item => !item.markedForDeletion);
+
     // Ground Grass Top
     ctx.fillStyle = isNight ? '#1a4d1a' : '#228B22';
     ctx.fillRect(0, canvas.height - GROUND_HEIGHT, canvas.width, 10);
@@ -557,6 +703,7 @@ function startGame() {
     obstacles = [];
     clouds = []; // Reset clouds for direction change
     birds = []; // Reset birds
+    undergroundItems = []; // Reset underground items
     startScreen.classList.add('hidden');
     gameOverScreen.classList.add('hidden');
     scoreDisplay.classList.remove('hidden');
