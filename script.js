@@ -73,13 +73,10 @@ const hitSound = new Audio('assets/gameover.mp3');
 // Audio Context
 // Reverting to file-based audio as per user request
 function playJumpSound() {
-    // Only play if near an obstacle (Player is on right, obstacle coming from left)
-    const nearestObstacle = obstacles.find(obs => obs.x < player.x);
-    if (nearestObstacle && (player.x - nearestObstacle.x) < 200) {
-        if (jumpSound) {
-            jumpSound.currentTime = 1.1; // Start from 1.1 seconds as requested
-            jumpSound.play().catch(e => console.log("Jump sound failed", e));
-        }
+    // Play jump sound on every jump as requested
+    if (jumpSound) {
+        jumpSound.currentTime = 1.1; // Keep the 1.1s offset as previously configured
+        jumpSound.play().catch(e => console.log("Jump sound failed", e));
     }
 }
 
