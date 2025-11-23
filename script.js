@@ -4,7 +4,9 @@ const ctx = canvas.getContext('2d');
 // Game Constants
 const GRAVITY = 0.6;
 const JUMP_STRENGTH = -12; // Negative because Y goes down
-const GROUND_HEIGHT = 50;
+let GROUND_HEIGHT = 50;
+const BASE_GAME_HEIGHT = 400;
+const BASE_GROUND_HEIGHT = 50;
 
 // Game State
 let gameRunning = false;
@@ -438,7 +440,26 @@ restartBtn.addEventListener('click', resetGame);
 function resizeCanvas() {
     canvas.width = document.getElementById('game-container').clientWidth;
     canvas.height = document.getElementById('game-container').clientHeight;
-    player.y = canvas.height - GROUND_HEIGHT - player.height;
+
+    // Calculate dynamic ground height to center the game vertically
+    if (canvas.height > BASE_GAME_HEIGHT) {
+        GROUND_HEIGHT = BASE_GROUND_HEIGHT + (canvas.height - BASE_GAME_HEIGHT) / 2;
+    } else {
+        GROUND_HEIGHT = BASE_GROUND_HEIGHT;
+    }
+
+    // Reposition Player
+    if (player.grounded) {
+        player.y = canvas.height - GROUND_HEIGHT - player.height;
+    } else {
+        // If jumping, try to maintain relative height or just let gravity handle it
+        // For simplicity, we won't snap him if he's mid-air, but the ground check in update() uses the new GROUND_HEIGHT
+    }
+
+    // Reposition Obstacles
+    obstacles.forEach(obstacle => {
+        obstacle.y = canvas.height - GROUND_HEIGHT - obstacle.height;
+    });
 }
 
 window.addEventListener('resize', resizeCanvas);
