@@ -662,17 +662,7 @@ function gameLoop() {
             player.y + player.height > obstacle.y
         ) {
             // Collision!
-            gameRunning = false;
-            document.getElementById('final-score').innerText = Math.floor(score);
-
-            // Show Game Over Screen (Blast message) immediately
-            const gameOverScreen = document.getElementById('game-over-screen');
-            const gameOverContent = document.getElementById('game-over-content');
-
-            gameOverScreen.classList.remove('hidden');
-            gameOverContent.classList.add('hidden'); // Hide button/score initially
-
-            playGameOverSound();
+            gameOver();
         }
     });
 
@@ -707,6 +697,7 @@ function startGame() {
     startScreen.classList.add('hidden');
     gameOverScreen.classList.add('hidden');
     scoreDisplay.classList.remove('hidden');
+    document.getElementById('leaderboard-container').innerHTML = ''; // Clear leaderboard
 
     // Reset Player Position (Right side)
     player.x = canvas.width - 100;
@@ -724,12 +715,59 @@ function resetGame() {
 }
 
 function gameOver() {
+    if (!gameRunning) return; // Prevent multiple calls
     gameRunning = false;
     cancelAnimationFrame(animationId);
-    playGameOverSound();
-    document.getElementById('final-score').innerText = score;
+
+    const gameOverScreen = document.getElementById('game-over-screen');
+    const gameOverContent = document.getElementById('game-over-content');
+
     gameOverScreen.classList.remove('hidden');
+    gameOverContent.classList.add('hidden'); // Hide content for blast effect
     scoreDisplay.classList.add('hidden');
+
+    playGameOverSound();
+
+    const finalScore = Math.floor(score);
+    document.getElementById('final-score').innerText = finalScore;
+
+    // Check High Score
+    if (window.Leaderboard) {
+        console.log("Checking high score for:", finalScore);
+        Leaderboard.isHighScore(finalScore).then(isHigh => {
+            console.log("Is high score?", isHigh);
+            if (isHigh) {
+                // Show Input Modal
+                console.log("Showing high score modal");
+                const modal = document.getElementById('highscore-modal');
+                modal.classList.remove('hidden');
+
+                // Handle Submit
+                const submitBtn = document.getElementById('submit-score-btn');
+                const nameInput = document.getElementById('player-name');
+
+                // Remove old listeners to prevent duplicates
+                const newBtn = submitBtn.cloneNode(true);
+                submitBtn.parentNode.replaceChild(newBtn, submitBtn);
+
+                newBtn.addEventListener('click', () => {
+                    const name = nameInput.value.trim() || 'Anonymous';
+                    Leaderboard.saveScore(name, finalScore).then(() => {
+                        modal.classList.add('hidden');
+                        Leaderboard.render('leaderboard-container');
+                    });
+                });
+            } else {
+                // Just show leaderboard
+                Leaderboard.render('leaderboard-container');
+            }
+        });
+    }
 }
 // Initial setup
 resizeCanvas();
+
+// Load leaderboard on start
+if (window.Leaderboard) {
+    Leaderboard.render('leaderboard-container-start');
+}

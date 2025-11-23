@@ -114,3 +114,75 @@ button:hover {
         border: none;
     }
 }
+
+/* If the screen is very short (landscape mobile), ensure it fits */
+@media (max-height: 400px) {
+    #game-container {
+        height: 100vh;
+        width: auto;
+        aspect-ratio: 2 / 1;
+    }
+}
+
+/* Leaderboard Styles */
+#leaderboard-container,
+#leaderboard-container-start {
+    margin: 15px 0;
+    text-align: left;
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 10px;
+    border-radius: 5px;
+}
+
+#leaderboard-container h3,
+#leaderboard-container-start h3 {
+    margin-top: 0;
+    text-align: center;
+    color: #333;
+    font-size: 18px;
+}
+
+#leaderboard-container ol,
+#leaderboard-container-start ol {
+    padding-left: 25px;
+    margin-bottom: 0;
+}
+
+#leaderboard-container li,
+#leaderboard-container-start li {
+    font-size: 16px;
+    margin-bottom: 5px;
+    color: #555;
+}
+
+/* Modal Styles */
+#highscore-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+#player-name {
+    padding: 10px;
+    font-size: 16px;
+    margin: 10px 0;
+    width: 200px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
