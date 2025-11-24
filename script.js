@@ -69,7 +69,7 @@ const fireImg = new Image();
 fireImg.src = 'assets/fire.png';
 
 // Audio (Placeholders)
-const jumpSound = new Audio('assets/jump.mp3');
+const jumpSound = new Audio('assets/gameover.mp3');
 const hitSound = new Audio('assets/gameover.mp3');
 
 // Audio Context
@@ -77,7 +77,7 @@ const hitSound = new Audio('assets/gameover.mp3');
 function playJumpSound() {
     // Play jump sound on every jump as requested
     if (jumpSound) {
-        jumpSound.currentTime = 1.1; // Keep the 1.1s offset as previously configured
+        jumpSound.currentTime = 1.1; // Start from 1.1s as requested
         jumpSound.play().catch(e => console.log("Jump sound failed", e));
     }
 }
