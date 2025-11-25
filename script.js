@@ -69,15 +69,18 @@ const fireImg = new Image();
 fireImg.src = 'assets/fire.png';
 
 // Audio (Placeholders)
-const jumpSound = new Audio('assets/gameover.mp3');
+const jumpSound = new Audio('assets/jump.mp3'); // Fixed: was gameover.mp3
 const hitSound = new Audio('assets/gameover.mp3');
+const bgm = new Audio('assets/bgm.mp3');
+bgm.loop = true;
+bgm.volume = 0.3; // Lower volume as requested
 
 // Audio Context
 // Reverting to file-based audio as per user request
 function playJumpSound() {
     // Play jump sound on every jump as requested
     if (jumpSound) {
-        jumpSound.currentTime = 1.1; // Start from 1.1s as requested
+        jumpSound.currentTime = 0; // Reset to start for immediate replay
         jumpSound.play().catch(e => console.log("Jump sound failed", e));
     }
 }
@@ -86,7 +89,13 @@ function playGameOverSound() {
     // Stop jump sound immediately
     if (jumpSound) {
         jumpSound.pause();
-        jumpSound.currentTime = 1.1;
+        jumpSound.currentTime = 0;
+    }
+
+    // Stop BGM
+    if (bgm) {
+        bgm.pause();
+        bgm.currentTime = 0;
     }
 
     const gameOverContent = document.getElementById('game-over-content');
@@ -706,6 +715,10 @@ function startGame() {
     player.grounded = true;
 
     // Audio context resume removed as we are using file-based audio
+    if (bgm) {
+        bgm.currentTime = 0;
+        bgm.play().catch(e => console.log("BGM failed to play", e));
+    }
 
     gameLoop();
 }
