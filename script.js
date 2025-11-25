@@ -122,6 +122,31 @@ function playGameOverSound() {
 }
 
 
+const deadImg = new Image();
+deadImg.src = 'assets/dead.png';
+let processedDeadSprite;
+
+const fireSprites = [];
+const fireImages = [];
+['assets/fire1.png', 'assets/fire2.png', 'assets/fire3.png'].forEach((path, index) => {
+    const img = new Image();
+    img.src = path;
+    fireImages[index] = img;
+    img.onload = function () {
+        console.log(`Loaded fire sprite: ${path}`);
+        // Use raw image directly since fire sprites already have transparency
+        fireSprites[index] = img;
+    };
+    img.onerror = function () {
+        console.error(`Failed to load fire sprite: ${path}`);
+        fireSprites[index] = null;
+    };
+});
+
+deadImg.onload = function () {
+    processedDeadSprite = removeWhiteBackground(deadImg);
+};
+
 // Player Object
 const player = {
     x: 50, // Will be reset in startGame
@@ -132,35 +157,77 @@ const player = {
     grounded: false,
     frame: 0,
     animationSpeed: 15, // Slower animation (was 5)
+    dead: false,
+    rotation: 0,
+    fireFrame: 0,
 
     draw: function () {
-        // Sprite direction fix: Removed horizontal flip as requested
-        // ctx.save();
-        // ctx.translate(this.x + this.width, this.y);
-        // ctx.scale(-1, 1);
+        ctx.save();
 
-        // Determine current sprite
-        let currentSprite;
-        if (this.grounded) {
-            // Cycle through sprites when running
-            const spriteIndex = Math.floor(this.frame / this.animationSpeed) % playerSprites.length;
-            currentSprite = processedSprites[spriteIndex] || playerSprites[spriteIndex];
-        } else {
-            // Use a specific frame for jumping (e.g., the second one)
-            currentSprite = processedSprites[1] || playerSprites[1] || processedSprites[0] || playerSprites[0];
-        }
+        if (this.dead) {
+            // Fire Animation
+            const fireIndex = Math.floor(this.fireFrame / 10) % 3; // Cycle speed
+            const fireSprite = fireSprites[fireIndex];
 
-        if (currentSprite && currentSprite.complete && currentSprite.naturalHeight !== 0) {
-            ctx.drawImage(currentSprite, this.x, this.y, this.width, this.height);
+            if (fireSprite && fireSprite.complete && fireSprite.naturalWidth > 0) {
+                // Anchor at bottom
+                const ratio = fireSprite.naturalWidth / fireSprite.naturalHeight;
+                const drawWidth = this.width * 1.5; // Make fire a bit wider
+                const drawHeight = drawWidth / ratio;
+
+                // Position: Bottom aligned with player bottom
+                const drawX = this.x + (this.width - drawWidth) / 2;
+                const drawY = (this.y + this.height) - drawHeight;
+
+                ctx.drawImage(fireSprite, drawX, drawY, drawWidth, drawHeight);
+            } else {
+                // Fallback to dead sprite if fire animation fails
+                if (processedDeadSprite) {
+                    ctx.drawImage(processedDeadSprite, this.x, this.y, this.width, this.height);
+                } else if (deadImg.complete) {
+                    ctx.drawImage(deadImg, this.x, this.y, this.width, this.height);
+                } else {
+                    ctx.fillStyle = 'orange';
+                    ctx.fillRect(this.x, this.y, this.width, this.height);
+                }
+            }
         } else {
-            // Fallback rectangle
-            ctx.fillStyle = '#333';
-            ctx.fillRect(this.x, this.y, this.width, this.height);
+            // Normal drawing
+            // Determine current sprite
+            let currentSprite;
+            if (this.grounded) {
+                // Cycle through sprites when running
+                const spriteIndex = Math.floor(this.frame / this.animationSpeed) % playerSprites.length;
+                currentSprite = processedSprites[spriteIndex] || playerSprites[spriteIndex];
+            } else {
+                // Use a specific frame for jumping (e.g., the second one)
+                currentSprite = processedSprites[1] || playerSprites[1] || processedSprites[0] || playerSprites[0];
+            }
+
+            if (currentSprite && currentSprite.complete && currentSprite.naturalHeight !== 0) {
+                ctx.drawImage(currentSprite, this.x, this.y, this.width, this.height);
+            } else {
+                // Fallback rectangle
+                ctx.fillStyle = '#333';
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+            }
         }
-        // ctx.restore();
+        ctx.restore();
     },
 
     update: function () {
+        if (this.dead) {
+            this.fireFrame++;
+            this.y += this.dy;
+            this.dy += GRAVITY;
+            // Ground Collision for dead body
+            if (this.y + this.height > canvas.height - GROUND_HEIGHT) {
+                this.y = canvas.height - GROUND_HEIGHT - this.height;
+                this.dy = 0; // Stop bouncing, just burn
+            }
+            return;
+        }
+
         // Jump
         if (keys['Space'] || keys['ArrowUp'] || touchJump) {
             if (this.grounded) {
@@ -713,6 +780,8 @@ function startGame() {
     player.y = canvas.height - GROUND_HEIGHT - 100;
     player.dy = 0;
     player.grounded = true;
+    player.dead = false; // Reset dead state
+    player.rotation = 0; // Reset rotation
 
     // Audio context resume removed as we are using file-based audio
     if (bgm) {
@@ -729,7 +798,38 @@ function resetGame() {
 
 function gameOver() {
     if (!gameRunning) return; // Prevent multiple calls
+
+    // Set player to dead state for animation
+    player.dead = true;
+    player.dy = 0; // No pop up, just fall/burn
+
+    // Don't stop game immediately, let animation play for a bit
+    // But stop obstacles/score
     gameRunning = false;
+
+    // Continue animation loop for death effect
+    function deathLoop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawBackground();
+        player.update();
+        player.draw();
+
+        // Draw static obstacles
+        obstacles.forEach(obstacle => obstacle.draw());
+
+        if (player.y < canvas.height - GROUND_HEIGHT - player.height || Math.abs(player.dy) > 0.1) {
+            requestAnimationFrame(deathLoop);
+        } else {
+            // Animation finished, show UI
+            showGameOverUI();
+        }
+    }
+    deathLoop();
+
+    playGameOverSound();
+}
+
+function showGameOverUI() {
     cancelAnimationFrame(animationId);
 
     const gameOverScreen = document.getElementById('game-over-screen');
@@ -739,10 +839,13 @@ function gameOver() {
     gameOverContent.classList.add('hidden'); // Hide content for blast effect
     scoreDisplay.classList.add('hidden');
 
-    playGameOverSound();
-
     const finalScore = Math.floor(score);
     document.getElementById('final-score').innerText = finalScore;
+
+    // Start blood effect (kept for dramatic effect if desired, or remove?)
+    // User asked for fire animation in play again screen.
+    // Let's replace the static image with fire animation
+    startFireAnimationUI();
 
     // Check High Score
     if (window.Leaderboard) {
@@ -776,6 +879,58 @@ function gameOver() {
             }
         });
     }
+}
+
+function startFireAnimationUI() {
+    const img = document.querySelector('.fire-animation-container img');
+    if (!img) return;
+
+    // Clear previous interval
+    if (window.fireInterval) clearInterval(window.fireInterval);
+
+    let frame = 0;
+    window.fireInterval = setInterval(() => {
+        frame++;
+        const index = frame % 3;
+        // Use the paths directly since we know them
+        img.src = `assets/fire${index + 1}.png`;
+
+        // Adjust style if needed (e.g. width/height)
+        // CSS handles basic sizing, but aspect ratio might vary
+    }, 150);
+}
+
+function startBloodEffect() {
+    const container = document.querySelector('.start-graphic');
+    if (!container) return;
+
+    // Clear previous intervals if any
+    if (window.bloodInterval) clearInterval(window.bloodInterval);
+
+    window.bloodInterval = setInterval(() => {
+        const blood = document.createElement('div');
+        blood.classList.add('blood-particle');
+
+        // Position relative to the container (which centers the image)
+        // Mouth is roughly in the top third, slightly right of center
+        const startX = 50 + (Math.random() * 10 - 5);
+        const startY = 30 + (Math.random() * 10 - 5);
+
+        blood.style.left = startX + '%';
+        blood.style.top = startY + '%';
+
+        // Random velocity
+        const vx = (Math.random() - 0.5) * 20;
+        const vy = -Math.random() * 20 - 10;
+
+        blood.style.setProperty('--vx', vx + 'px');
+        blood.style.setProperty('--vy', vy + 'px');
+
+        container.appendChild(blood);
+
+        // Remove after animation
+        setTimeout(() => blood.remove(), 1000);
+    }, 50);
 }
 // Initial setup
 resizeCanvas();

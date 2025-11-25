@@ -271,3 +271,54 @@ button:hover {
         transform: translateY(0px) rotate(0deg);
     }
 }
+
+.dead-character {
+    animation: none;
+    /* No float for dead character */
+    transform: none;
+    /* Fire is upright */
+}
+
+.fire-animation-container {
+    position: relative;
+    width: 120px;
+    height: 150px;
+    /* Fixed height to prevent jumping */
+    margin: 20px auto;
+    display: flex;
+    align-items: flex-end;
+    /* Bottom align the image */
+    justify-content: center;
+    overflow: visible;
+    /* Allow fire to extend beyond if needed */
+}
+
+.fire-animation-container img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    object-fit: contain;
+    object-position: bottom;
+    /* Anchor at bottom */
+}
+
+.blood-particle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background-color: #d32f2f;
+    pointer-events: none;
+    animation: spurt 1s ease-out forwards;
+}
+
+@keyframes spurt {
+    0% {
+        transform: translate(0, 0);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translate(var(--vx), var(--vy));
+        opacity: 0;
+    }
+}
