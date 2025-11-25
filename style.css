@@ -5,6 +5,9 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
+    /* Fallback */
+    height: 100dvh;
+    /* Dynamic viewport height for mobile browsers */
     background-color: #f0f0f0;
     font-family: 'Arial', sans-serif;
     overflow: hidden;
@@ -116,6 +119,8 @@ button:hover {
         width: 100%;
         max-width: 100%;
         height: 100vh;
+        /* Fallback */
+        height: 100dvh;
         border: none;
     }
 
