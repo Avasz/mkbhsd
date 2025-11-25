@@ -131,6 +131,7 @@ button:hover {
         margin-bottom: 10px;
     }
 
+    .start-graphic img,
     .animated-character {
         width: 60px;
         /* Smaller character */
@@ -142,6 +143,13 @@ button:hover {
         /* Ensure it fits */
         max-width: 350px;
         /* Prevent it from being too wide on tablets */
+    }
+
+    /* Fire animation mobile adjustments */
+    .fire-animation-container {
+        width: 80px !important;
+        height: 100px !important;
+        margin: 10px auto !important;
     }
 
     .start-graphic {
