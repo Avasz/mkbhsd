@@ -118,6 +118,30 @@ button:hover {
         height: 100vh;
         border: none;
     }
+
+    /* Start Screen Mobile Adjustments */
+    .bounce-title {
+        font-size: 2em;
+        /* Smaller title */
+        margin-bottom: 10px;
+    }
+
+    .animated-character {
+        width: 60px;
+        /* Smaller character */
+    }
+
+    #start-screen {
+        padding: 10px;
+        width: 90%;
+        /* Ensure it fits */
+        max-width: 350px;
+        /* Prevent it from being too wide on tablets */
+    }
+
+    .start-graphic {
+        margin: 10px 0;
+    }
 }
 
 /* If the screen is very short (landscape mobile), ensure it fits */
