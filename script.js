@@ -893,10 +893,14 @@ function startFireAnimationUI() {
         frame++;
         const index = frame % 3;
         // Use the paths directly since we know them
-        img.src = `assets/fire${index + 1}.png`;
+        // Add cache buster to force reload with proper CSS
+        img.src = `assets/fire${index + 1}.png?v=2`;
 
-        // Adjust style if needed (e.g. width/height)
-        // CSS handles basic sizing, but aspect ratio might vary
+        // Force style application
+        img.style.maxWidth = '100%';
+        img.style.maxHeight = '100%';
+        img.style.width = 'auto';
+        img.style.height = 'auto';
     }, 150);
 }
 
